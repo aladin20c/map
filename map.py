@@ -129,11 +129,28 @@ delta2= Delta2*ratio_of_change
 
 
 x3,y3,x4,y4=get_intersections(x1,y1,delta1,x2,y2,delta2)
-#due to small inaccuracy in calculations since the scale is too small and that the mervator
-#projection isn't perfect we take the median form the two points that we found as the
-#point to be found
-x5=(x3+x4)/2
-y5=(y3+y4)/2
+
+
+###############################################################################
+# deciding wich point we choose
+#we compare the slope of point1,2 to the slope of point 1,3 and 1,4
+###############################################################################
+x5,y5=0,0
+
+Slope12=(X1-X2)/(Y1-Y2)
+Slope1X=(X1-X3)/(Y1-Y3)
+
+
+slope12=(x1-x2)/(y1-y2)
+
+Slope13=(x1-x3)/(y1-y3)
+slope14=(x1-x4)/(y1-y4)
+
+if (Slope12>Slope1X and slope12>Slope13) or (Slope12<Slope1X and slope12<Slope13) :
+    x5,y5=x3,y3
+else :
+    x5,y5=x4,y4
+
 
 ###############################################################################
 # saving the pixel in a file named pixel.png
