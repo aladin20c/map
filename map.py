@@ -55,132 +55,119 @@ def get_intersections(x0, y0, r0, x1, y1, r1):
         print(" x3 "+str(x3) +" y3 "+str(y3)+" x4 "+str(x4) +" y4 "+str(y4))
         return (x3, y3, x4, y4)
 
-###############################################################################
-#reading the image
-###############################################################################
-
-
-image = Image.open("ndvi-2021-06-04-7J0k6pEFil.png")
-arr=array(image)
-height,width=arr.shape[0],arr.shape[1]
-
-###############################################################################
-#gett1ng the position of the first cooordinate (en haut à droite).
-###############################################################################
-
-x1,y1=0,0
-for i in range(width-1,0,-1) :
-    if arr[0][i][0]!=0 or arr[0][i][1]!=0 or arr[0][i][2]!=0 or arr[0][i][3]!=0:
-        x1=i
-        break
-
-###############################################################################
-#gett1ng the position of the second cooordinat (plus en bas à gauche)
-###############################################################################
-
-x2,y2=0,0
-found = False
-for j in range(height) :
-    y2=j
-    for i in range(width) :
-        if arr[j][i][0]!=0 or arr[j][i][1]!=0 or arr[j][i][2]!=0 or arr[j][i][3]!=0 :
-            if i-x2 != 2 :
-                x2=i
-                break
-            else :
-                found = True
-                break
-    if found : break
-
-
 
 
 ###############################################################################
-
-#coordinate of the top right pixel on a mercator map
-X1,Y1=mercator_projection(36.690702848085614,10.532794780008729)
-#coordinate of the bottom left pixel on a mercator map
-X2,Y2=mercator_projection(36.68638314797726,10.529198094023505)
-#coordinate of the pixel to be found on a mercator map
-X3,Y3=mercator_projection(36.688256333333335,10.531021333333333)
-
-#distance between the top right pixel and the bottom left pixel on a mercator map
-Delta= math.sqrt( (X1-X2)*(X1-X2)+(Y1-Y2)*(Y1-Y2) )
-#distance between top right pixel and the pixel to be found on a mercator map
-Delta1= math.sqrt( (X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3) )
-#distance between the bottom left pixel and the pixel to be found on a mercator map
-Delta2= math.sqrt( (X2-X3)*(X2-X3)+(Y2-Y3)*(Y2-Y3) )
-
-
-
-
-
-#distance between the top right pixel and the bottom left pixel in the image
-delta=math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2) )
-
-ratio_of_change= delta/Delta #the ratio of distance doesn't change
-#since the picture is also a zoomed mercator projection the ratio of distance of
-#mercator projection and the picture is constant.
-
-#distance between top right pixel and the pixel to be found  in the image
-delta1= Delta1*ratio_of_change
-#distance between the bottom left pixel and the pixel to be found  in the image
-delta2= Delta2*ratio_of_change
-
-
-x3,y3,x4,y4=get_intersections(x1,y1,delta1,x2,y2,delta2)
-
-
 ###############################################################################
-# deciding wich point we choose
-#we compare the slope of point1,2 to the slope of point 1,3 and 1,4
 ###############################################################################
-x5,y5=0,0
-
-Slope12=(X1-X2)/(Y1-Y2)
-Slope1X=(X1-X3)/(Y1-Y3)
-
-
-slope12=(x1-x2)/(y1-y2)
-
-Slope13=(x1-x3)/(y1-y3)
-slope14=(x1-x4)/(y1-y4)
-
-if (Slope12>Slope1X and slope12>Slope13) or (Slope12<Slope1X and slope12<Slope13) :
-    x5,y5=x3,y3
-else :
-    x5,y5=x4,y4
-
-
 ###############################################################################
-# saving the pixel in a file named pixel.png
+###############################################################################
 ###############################################################################
 
-print(image.getpixel((x5,y5)))
-img = Image.new('RGBA', (200, 200), color = image.getpixel((x5,y5)))
-img.save('pixel.png')
+def getPixel (latitude,longitude) :
+    ##############################reading the image############################
+    image = Image.open("ndvi-2021-06-04-7J0k6pEFil.png")
+    arr=array(image)
+    height,width=arr.shape[0],arr.shape[1]
+
+    ######gett1ng the position of the first cooordinate (en haut à droite).#####
+
+    x1,y1=0,0
+    for i in range(width-1,0,-1) :
+        if arr[0][i][0]!=0 or arr[0][i][1]!=0 or arr[0][i][2]!=0 or arr[0][i][3]!=0:
+            x1=i
+            break
+
+    ####gett1ng the position of the second cooordinat (plus en bas à gauche)######
+
+    x2,y2=0,0
+    found = False
+    for j in range(height) :
+        y2=j
+        for i in range(width) :
+            if arr[j][i][0]!=0 or arr[j][i][1]!=0 or arr[j][i][2]!=0 or arr[j][i][3]!=0 :
+                if i-x2 != 2 :
+                    x2=i
+                    break
+                else :
+                    found = True
+                    break
+        if found : break
 
 
-###############################################################################
-# visual representation of the algorithm
-###############################################################################
+    #coordinate of the top right pixel on a mercator map
+    X1,Y1=mercator_projection(36.690702848085614,10.532794780008729)
+    #coordinate of the bottom left pixel on a mercator map
+    X2,Y2=mercator_projection(36.68638314797726,10.529198094023505)
+    #coordinate of the pixel to be found on a mercator map
+    X3,Y3=mercator_projection(latitude,longitude)
 
-draw= ImageDraw.Draw(image)
-
-draw.ellipse((x1-5,y1-5,x1+5,y1+5),fill=(0,250,0),outline='yellow' )
-draw.ellipse((x2-5,y2-5,x2+5,y2+5),fill=(0,250,0),outline='yellow' )
-
-draw.ellipse((x3-2,y3-2,x3+2,y3+2),fill=(0,250,0),outline='yellow' )
-draw.ellipse((x4-2,y4-2,x4+2,y4+2),fill=(0,250,0),outline='yellow' )
-
-draw.ellipse((x1-delta1,y1-delta1,x1+delta1,y1+delta1),outline='black' )
-draw.ellipse((x2-delta2,y2-delta2,x2+delta2,y2+delta2),outline='blue' )
-
-draw.ellipse((x5-2,y5-2,x5+2,y5+2),fill=(250,250,250),outline='purple' )
+    #distance between the top right pixel and the bottom left pixel on a mercator map
+    Delta= math.sqrt( (X1-X2)*(X1-X2)+(Y1-Y2)*(Y1-Y2) )
+    #distance between top right pixel and the pixel to be found on a mercator map
+    Delta1= math.sqrt( (X1-X3)*(X1-X3)+(Y1-Y3)*(Y1-Y3) )
+    #distance between the bottom left pixel and the pixel to be found on a mercator map
+    Delta2= math.sqrt( (X2-X3)*(X2-X3)+(Y2-Y3)*(Y2-Y3) )
 
 
-image.show()
 
-newimg = Image.open("pixel.png")
-newimg.show()
-###############################################################################
+    #distance between the top right pixel and the bottom left pixel in the image
+    delta=math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2) )
+
+    ratio_of_change= delta/Delta #the ratio of distance doesn't change
+    #since the picture is also a zoomed mercator projection the ratio of distance of
+    #mercator projection and the picture is constant.
+
+    #distance between top right pixel and the pixel to be found  in the image
+    delta1= Delta1*ratio_of_change
+    #distance between the bottom left pixel and the pixel to be found  in the image
+    delta2= Delta2*ratio_of_change
+
+
+    x3,y3,x4,y4=get_intersections(x1,y1,delta1,x2,y2,delta2)
+
+
+    ###############################################################################
+    # deciding wich point we choose
+    #we compare the slope of point1,2 to the slope of point 1,3 and 1,4
+    ###############################################################################
+    x5,y5=0,0
+
+    Slope12=(X1-X2)/(Y1-Y2)
+    Slope1X=(X1-X3)/(Y1-Y3)
+
+
+    slope12=(x1-x2)/(y1-y2)
+
+    Slope13=(x1-x3)/(y1-y3)
+    slope14=(x1-x4)/(y1-y4)
+
+    if (Slope12>Slope1X and slope12>Slope13) or (Slope12<Slope1X and slope12<Slope13) :
+        x5,y5=x3,y3
+    else :
+        x5,y5=x4,y4
+
+    ########################saving the pixel in a file named pixel.png#############
+
+    print(image.getpixel((x5,y5)))
+    img = Image.new('RGBA', (200, 200), color = image.getpixel((x5,y5)))
+    img.save('pixel.png')
+
+
+    #################### visual representation of the algorithm####################
+    draw= ImageDraw.Draw(image)
+    draw.ellipse((x1-5,y1-5,x1+5,y1+5),fill=(0,250,0),outline='yellow' )
+    draw.ellipse((x2-5,y2-5,x2+5,y2+5),fill=(0,250,0),outline='yellow' )
+    draw.ellipse((x3-2,y3-2,x3+2,y3+2),fill=(0,250,0),outline='yellow' )
+    draw.ellipse((x4-2,y4-2,x4+2,y4+2),fill=(0,250,0),outline='yellow' )
+    draw.ellipse((x1-delta1,y1-delta1,x1+delta1,y1+delta1),outline='black' )
+    draw.ellipse((x2-delta2,y2-delta2,x2+delta2,y2+delta2),outline='blue' )
+    draw.ellipse((x5-2,y5-2,x5+2,y5+2),fill=(250,250,250),outline='purple' )
+    image.show()
+    newimg = Image.open("pixel.png")
+    newimg.show()
+    ###############################################################################
+
+
+
+getPixel(36.688256333333335,10.531021333333333)
